@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import moment from "moment";
 import Modal from "react-modal";
 import DateTimePicker from "react-datetime-picker";
 import Swal from "sweetalert2";
+import { uiCloseModal } from "../../actions/ui";
+import { eventAddNew } from "../../actions/events";
 
 const customStyles = {
   content: {
@@ -21,6 +25,9 @@ const now = moment();
 const nowClone = now.clone().add(1, "hours");
 
 export const EventModal = () => {
+  const { modalOpen } = useSelector((state) => state.ui);
+  const dispatch = useDispatch();
+
   const [dateStart, setDateStart] = useState(now.toDate());
   const [dateEnd, setDateEnd] = useState(nowClone.toDate());
   const [tittleValid, setTittleValid] = useState(true);
@@ -42,7 +49,9 @@ export const EventModal = () => {
     });
   };
 
-  const closeModal = () => {};
+  const closeModal = () => {
+    dispatch(uiCloseModal());
+  };
 
   const handleStartDateChange = (e) => {
     setDateStart(e);
@@ -62,23 +71,32 @@ export const EventModal = () => {
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    const momentStart = moment( start );
-    const momentEnd = moment( end );
+    const momentStart = moment(start);
+    const momentEnd = moment(end);
     if (momentStart.isSameOrAfter(momentEnd)) {
       return Swal.fire(
-        'Error',
-        'La fecha fin debe de ser mayor a la de inicio'
+        "Error",
+        "La fecha fin debe de ser mayor a la de inicio"
       );
     }
-    if ( tittle.trim().length < 2) {
+    if (tittle.trim().length < 2) {
       return setTittleValid(false);
     }
-   
+    
+    dispatch( eventAddNew({
+      ...formValues,
+      id: new Date().getTime(),
+      
+    })
+       );
+
+    setTittleValid(true);
+    closeModal();
   };
 
   return (
     <Modal
-      isOpen={true}
+      isOpen={modalOpen}
       // onAfterOpen={afterOpenModal}
       onRequestClose={closeModal}
       style={customStyles}
@@ -113,7 +131,7 @@ export const EventModal = () => {
           <label>Titulo</label>
           <input
             type="text"
-            className={`form-control ${ !tittleValid && 'is-invalid'} `}
+            className={`form-control ${!tittleValid && "is-invalid"} `}
             placeholder="Título del evento"
             name="tittle"
             autoComplete="off"
