@@ -1,12 +1,11 @@
 import React from "react";
 
 export const EventDetail = ({ event }) => {
-  const { title, location, notes } = event;
+  const { tittle, location } = event;
   return (
     <div>
-      <span> {title}</span>
+      <span> {tittle}</span>
       <span> {location}</span>
-      <span> {notes}</span>
     </div>
   );
 };

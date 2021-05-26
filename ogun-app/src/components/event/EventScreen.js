@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 
 import { messages } from "../../helpers/calendar-messages";
@@ -8,40 +8,37 @@ import { EventDetail } from "./EventDetail";
 import { EventModal } from "./EventModal";
 
 import { uiOpenModal } from "../../actions/ui";
-import { eventSetActive } from "../../actions/events";
+import { eventClearActiveEvent, eventSetActive } from "../../actions/events";
 
 import "moment/locale/es";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { AddNewFab } from "../../ui/AddNewFab";
-
+import { DeleteEventFab } from "../../ui/DeleteEventFab";
 
 moment.locale("es");
 const localizer = momentLocalizer(moment);
 
-const events = [
-  {
-    title: "cumpleaños",
-    start: moment().toDate(),
-    end: moment().add(2, "hours").toDate(),
-    bgcolor: "#fafafa",
-  },
-];
-
 export const EventScreen = () => {
   const dispatch = useDispatch();
+  const { events, activeEvent } = useSelector((state) => state.events);
 
   const [lastView, setLastView] = useState(
     localStorage.getItem("lastView") || "month"
   );
 
   const onDoubleClick = (e) => {
-    dispatch( uiOpenModal() ); 
-  }
+    dispatch(uiOpenModal());
+  };
 
   const onSelectEvent = (e) => {
-    dispatch( eventSetActive(e) ); 
-    dispatch( uiOpenModal());
-
+    dispatch(eventSetActive(e));
+  };
+  const onSelectSlot = (e) => {
+    if(activeEvent){
+    dispatch(eventClearActiveEvent(e));}
+    else {
+      dispatch(uiOpenModal());
+    }
   };
   const onViewChange = (e) => {
     setLastView(e);
@@ -73,12 +70,16 @@ export const EventScreen = () => {
         onDoubleClickEvent={onDoubleClick}
         onSelectEvent={onSelectEvent}
         onView={onViewChange}
+        onSelectSlot={onSelectSlot}
+        selectable={true}
         view={lastView}
         components={{
           event: EventDetail,
         }}
       />
-      <AddNewFab/>
+      <AddNewFab />
+      {activeEvent && <DeleteEventFab />}
+
       <EventModal />
     </div>
   );
