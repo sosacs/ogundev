@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import moment from "moment";
 import Modal from "react-modal";
 import DateTimePicker from "react-datetime-picker";
+import Swal from "sweetalert2";
 
 const customStyles = {
   content: {
@@ -21,17 +22,58 @@ const nowClone = now.clone().add(1, "hours");
 
 export const EventModal = () => {
   const [dateStart, setDateStart] = useState(now.toDate());
-
   const [dateEnd, setDateEnd] = useState(nowClone.toDate());
+  const [tittleValid, setTittleValid] = useState(true);
+
+  const [formValues, setformValues] = useState({
+    tittle: "",
+    location: "",
+    notes: "",
+    start: now.toDate(),
+    end: nowClone.toDate(),
+  });
+
+  const { tittle, location, notes, start, end } = formValues;
+
+  const handleInputChange = ({ target }) => {
+    setformValues({
+      ...formValues,
+      [target.name]: target.value,
+    });
+  };
 
   const closeModal = () => {};
 
   const handleStartDateChange = (e) => {
     setDateStart(e);
+    setformValues({
+      ...formValues,
+      start: e,
+    });
   };
 
   const handleEndDateChange = (e) => {
     setDateEnd(e);
+    setformValues({
+      ...formValues,
+      end: e,
+    });
+  };
+
+  const handleSubmitForm = (e) => {
+    e.preventDefault();
+    const momentStart = moment( start );
+    const momentEnd = moment( end );
+    if (momentStart.isSameOrAfter(momentEnd)) {
+      return Swal.fire(
+        'Error',
+        'La fecha fin debe de ser mayor a la de inicio'
+      );
+    }
+    if ( tittle.trim().length < 2) {
+      return setTittleValid(false);
+    }
+   
   };
 
   return (
@@ -46,7 +88,7 @@ export const EventModal = () => {
     >
       <h1> Nuevo evento </h1>
       <hr />
-      <form className="container">
+      <form className="container" onSubmit={handleSubmitForm}>
         <div className="form-group">
           <label>Fecha y hora inicio</label>
           <DateTimePicker
@@ -68,26 +110,46 @@ export const EventModal = () => {
 
         <hr />
         <div className="form-group">
-          <label>Titulo y notas</label>
+          <label>Titulo</label>
           <input
             type="text"
-            className="form-control"
+            className={`form-control ${ !tittleValid && 'is-invalid'} `}
             placeholder="Título del evento"
-            name="title"
+            name="tittle"
             autoComplete="off"
+            value={tittle}
+            onChange={handleInputChange}
           />
           <small id="emailHelp" className="form-text text-muted">
             Una descripción corta
           </small>
         </div>
+        <div className="form-group">
+          <label>Ubicacion</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Ubicacion"
+            name="location"
+            autoComplete="off"
+            value={location}
+            onChange={handleInputChange}
+          />
+          <small id="emailHelp" className="form-text text-muted">
+            Ubicacion del trabajo
+          </small>
+        </div>
 
         <div className="form-group">
+          <label>Notas</label>
           <textarea
             type="text"
             className="form-control"
             placeholder="Notas"
-            rows="5"
+            rows="2"
             name="notes"
+            value={notes}
+            onChange={handleInputChange}
           ></textarea>
           <small id="emailHelp" className="form-text text-muted">
             Información adicional
